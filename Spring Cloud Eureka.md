@@ -4,71 +4,121 @@
 
 《Spring Cloud 微服务实战》
 
-### 源码分析
+### Eureka 详解
 
-* Region、Zone
+* 服务治理机制
 
-  * 源码
+  * 服务提供者
 
-    EndpointUtils.getServiceUrlsMapFromConfig()
+    * 服务注册
 
-    EndpointUtils.getRegion()
+      “服务提供者”在启动的时候会通过发送 REST 请求的方式将自己注册到 Eureka Server 上，同时带上了自身服务的一些元数据信息。Eureka Server 接收到这个 REST 请求之后，将元数据信息存储在一个双层结构 Map 中，其中第一层的 key 是服务名，第二层的 key 是具体服务的实例名。在服务注册时，需要确认一下 eureka.client.register-with-eureka=true 参数是否正确，该值默认为 true。若设置为 false，将不会启动注册操作。
 
-    EurekaClientConfigBean.getAvailabilityZones()
+    * 服务同步
 
-  * 注释
+      由于服务注册中心之间因互相注册为服务，当服务提供者发送注册请求到一个服务注册中心时，它会将该请求转发给集群中相连的其他注册中心，从而实现注册中心之间的服务同步。
 
-    一个微服务应用只可以属于一个 Region，如果不特别配置，默认为 default。若我们要自己设置，可以通过 eureka.client.region 属性来定义。
+    * 服务续约
 
-    当我们没有特别为 Region 配置 Zone 的时候，将默认采用 defaultZone，这也是我们之前配置参数 eureka.client.serviceUrl.defaultZone 的由来。若要为应用指定 Zone，可以通过 eureka.client.availability-zones 属性来进行设置。Zone 能够设置多个，并且通过逗号分隔来配置。由此，我们可以判断 Region 和 Zone 是一对多的关系。
+      在注册完服务之后，服务提供者会维护一个心跳用来持续告诉 Eureka Server “我还活着”，以防止 Eureka Server 的“剔除任务”将该服务实例从服务列表中排除出去。
 
-* serviceUrls
+      eureka.instance.lease-renewal-interval-in-seconds=30 参数用于定义服务续约任务的调用间隔时间
 
-  * 源码
+      eureka.instance.lease-expiration-duration-in-seconds=90 参数用于定义服务失效的时间
 
-    EurekaClientConfigBean.getEurekaServerServiceUrls()
+  * 服务消费者
 
-  * 注释
+    * 获取服务
 
-    eureka.client.serviceUrl.defaultZone 属性可以配置多个，并且需要通过逗号分隔。
+      当我们启动服务消费者的时候，它会发送一个 REST 请求给服务注册中心，来获取上面注册的服务清单。
 
-    当我们在微服务应用中使用 Ribbon 来实现服务调用时，对于 Zone 的设置可以在负载均衡时实现区域亲和特性：Ribbon 的默认策略会优先访问同客户端处于一个 Zone 中的服务端实例，只有当同一个 Zone 中没有可用服务端实例的时候才会访问其他 Zone 中的实例。
+      获取服务是服务消费者的基础，所以必须确保 eureka.client.fetch-registry=true，该值默认为 true。若希望修改缓存清单的更新时间，可以通过 eureka.client.registry-fetch-interval-seconds=30 参数进行修改。
 
-* 服务注册
+    * 服务调用
 
-  * 源码
+      服务消费者在获取服务清单后，通过服务名可以获得具体提供服务的实例名和该实例的元数据信息。因为有这些服务实例的详细信息，所以客户端可以根据自己的需要决定具体调用哪个实例，在 Ribbon 中会默认采用轮询的方式进行调用，从而实现客户端的负载均衡。
 
-    DiscoveryClient.initScheduledTasks()
+    * 服务下线
 
-    if (clientConfig.shouldRegisterWithEureka())
+      在客户端程序中，当服务实例进行正常的关闭操作时，它会触发一个服务下线的 REST 请求给 Eureka Server，告诉服务注册中心“我要下线了”。服务端在接收到请求之后，将该服务状态置为 DOWN，并把该下线事件广播出去。
 
-  * 注释
+  * 服务注册中心
 
-    我们能看到发起注册请求的时候，传入了一个 com.netflix.appinfo.InstanceInfo 对象，该对象就是注册时客户端给服务端的服务的元数据。
+    * 失效剔除
 
-* 服务获取与服务续约
+      有些时候，我们的服务实例并不一定会正常下线，可能由于内存溢出、网络故障等原因使得服务不能正常工作，而服务注册中心并未收到“服务下线”的请求。为了从服务列表中将这些无法提供服务的实例剔除，Eureka Server 在启动的时候会创建一个定时任务，默认每隔 60 秒将当前清单中超时（默认为 90 秒）没有续约的服务剔除出去。
 
-  * 源码
+    * 自我保护
 
-    DiscoveryClient.initScheduledTasks()
+      Eureka Server 在运行期间，会统计心跳失败的比例在 15 分钟之内是否低于 85%，如果出现低于的情况，Eureka Server 会将当前的实例注册信息保护起来，让这些实例不会过期，尽可能保护这些注册信息。但是，在这段保护期内实例若出现问题，那么客户端很容易拿到实际已经不存在的服务实例，会出现调用失败的情况，所以客户端必须要有容错机制，比如可以使用请求重试、断路器等机制。
 
-    if (clientConfig.shouldFetchRegistry())
+      由于本地调试很容易触发注册中心的保护机制，这会使得注册中心维护的服务实例不那么准确。所以，我们在本地进行开发的时候，可以使用 eureka.server.enable-self-preservation=false 参数来关闭保护机制，以确保注册中心将不可用的实例正确剔除。
 
-    if (clientConfig.shouldRegisterWithEureka()) { scheduler.schedule() }
+* 源码分析
 
-  * 注释
+  * Region、Zone
 
-    “服务获取”任务相对于“服务续约”和“服务注册”任务更为独立。“服务续约”与“服务注册”在同一个 if 逻辑中，这个不难理解，服务注册到 Eureka Server 后，自然需要一个心跳（HeartbeatThread）去续约，防止被剔除，所以它们肯定是成对出现的。
+    * 源码
 
-* 服务注册中心处理
+      EndpointUtils.getServiceUrlsMapFromConfig()
 
-  * 源码
+      EndpointUtils.getRegion()
 
-    InstanceRegistry.register() { publishEvent(new EurekaInstanceRegisteredEvent()); super.register(); }
+      EurekaClientConfigBean.getAvailabilityZones()
 
-  * 注释
+    * 注释
 
-    注册中心存储了两层 Map 结构（ConcurrentHashMap），第一层的 key 存储服务名：InstanceInfo 中的 appName 属性，第二层的 key 存储实例名：InstanceInfo 中的 instanceId 属性。
+      一个微服务应用只可以属于一个 Region，如果不特别配置，默认为 default。若我们要自己设置，可以通过 eureka.client.region 属性来定义。
+
+      当我们没有特别为 Region 配置 Zone 的时候，将默认采用 defaultZone，这也是我们之前配置参数 eureka.client.serviceUrl.defaultZone 的由来。若要为应用指定 Zone，可以通过 eureka.client.availability-zones 属性来进行设置。Zone 能够设置多个，并且通过逗号分隔来配置。由此，我们可以判断 Region 和 Zone 是一对多的关系。
+
+  * serviceUrls
+
+    * 源码
+
+      EurekaClientConfigBean.getEurekaServerServiceUrls()
+
+    * 注释
+
+      eureka.client.serviceUrl.defaultZone 属性可以配置多个，并且需要通过逗号分隔。
+
+      当我们在微服务应用中使用 Ribbon 来实现服务调用时，对于 Zone 的设置可以在负载均衡时实现区域亲和特性：Ribbon 的默认策略会优先访问同客户端处于一个 Zone 中的服务端实例，只有当同一个 Zone 中没有可用服务端实例的时候才会访问其他 Zone 中的实例。
+
+  * 服务注册
+
+    * 源码
+
+      DiscoveryClient.initScheduledTasks()
+
+      if (clientConfig.shouldRegisterWithEureka())
+
+    * 注释
+
+      我们能看到发起注册请求的时候，传入了一个 com.netflix.appinfo.InstanceInfo 对象，该对象就是注册时客户端给服务端的服务的元数据。
+
+  * 服务获取与服务续约
+
+    * 源码
+
+      DiscoveryClient.initScheduledTasks()
+
+      if (clientConfig.shouldFetchRegistry())
+
+      if (clientConfig.shouldRegisterWithEureka()) { scheduler.schedule() }
+
+    * 注释
+
+      “服务获取”任务相对于“服务续约”和“服务注册”任务更为独立。“服务续约”与“服务注册”在同一个 if 逻辑中，这个不难理解，服务注册到 Eureka Server 后，自然需要一个心跳（HeartbeatThread）去续约，防止被剔除，所以它们肯定是成对出现的。
+
+  * 服务注册中心处理
+
+    * 源码
+
+      InstanceRegistry.register() { publishEvent(new EurekaInstanceRegisteredEvent()); super.register(); }
+
+    * 注释
+
+      注册中心存储了两层 Map 结构（ConcurrentHashMap），第一层的 key 存储服务名：InstanceInfo 中的 appName 属性，第二层的 key 存储实例名：InstanceInfo 中的 instanceId 属性。
 
 ### 配置详解
 
