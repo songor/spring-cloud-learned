@@ -13,13 +13,14 @@ import java.util.List;
 @RestController
 public class HelloController {
 
-    @Autowired
-    private DiscoveryClient client;
+//    @Autowired
+//    private DiscoveryClient client;
 
     @GetMapping("/hello")
     public String hello() {
-        List<ServiceInstance> instances = client.getInstances("hello-service");
-        instances.stream().forEach((instance) -> log.info("/hello, host: " + instance.getHost() + ", port: " + instance.getPort() + ", service id: " + instance.getServiceId()));
+//        List<ServiceInstance> instances = client.getInstances("hello-service");
+//        instances.stream().forEach((instance) -> log.info("/hello, host: " + instance.getHost() + ", port: " + instance.getPort() + ", service id: " + instance.getServiceId()));
+        log.info("Received request");
         return "Hello World";
     }
 
