@@ -26,6 +26,21 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class RibbonConsumerApplication {
 
+    /**
+     * 客户端负载均衡和服务端负载均衡最大的不同在于服务清单所存储的位置。在客户端负载均衡中，所有客户端节点都要维护着自己要访问的服务端清单，
+     * 而这些服务端的清单来自于服务注册中心。
+     * <b>Ribbon + Eureka</b>
+     * ILoadBalancer:
+     * ZoneAwareLoadBalancer
+     * IPing:
+     * NIWSDiscoveryPing
+     * IRule:
+     * ZoneAvoidanceRule 挑选出具体的服务实例
+     * ServerList:
+     * DiscoveryEnabledNIWSServerList 的 obtainServersViaDiscovery 方法依靠 EurekaClient 从服务注册中心获取到具体的服务实例 InstanceInfo 列表。
+     * ServerListFilter:
+     * ZonePreferenceServerListFilter 用于实现对服务实例列表的过滤
+     */
     @Bean
     @LoadBalanced
     RestTemplate restTemplate() {
