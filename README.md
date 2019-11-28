@@ -51,3 +51,27 @@
     --spring.profiles.active=tko
     
     java -jar 启动单个实例，Postman 发送请求 http://localhost:9000/ribbon-consumer
+
+### Spring Cloud Config
+
+* URL
+
+  * Config Client 端创建 RESTful 接口来返回配置中心的 from 属性
+
+    GET http://localhost:7002/from
+
+  * 查看加密功能状态
+
+    GET http://localhost:7001/encrypt/status
+
+    Basic Auth: Username - user, Password - 02795da9-8f86-4b22-aeec-7351a8bde965
+
+  * 加密
+
+    POST http://localhost:7001/encrypt
+
+    Body: (raw) 02795da9-8f86-4b22-aeec-7351a8bde965
+
+  * 动态刷新配置
+
+    POST http://localhost:7002/actuator/refresh
