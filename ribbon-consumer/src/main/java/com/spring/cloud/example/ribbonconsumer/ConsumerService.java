@@ -60,6 +60,13 @@ public class ConsumerService {
      * 若请求成功，则将断路器重新置于关闭状态。
      * markSuccess()：该函数用来在“半开”状态时使用
      */
+    /**
+     * <b>依赖隔离</b>
+     * Hystrix 使用“舱壁模式”实现线程池的隔离，它会为每一个依赖服务创建一个独立的线程池，这样就算某个依赖服务出现延迟过高的情况，
+     * 也只是对该依赖服务的调用产生影响，而不会拖慢其他的依赖服务。
+     * 在 Hystrix 中除了可使用线程池之外，还可以使用信号量来控制单个依赖服务的并发度，信号量的开销远比线程池的开销小，
+     * 但是它不能设置超时和实现异步访问。所以，只有在依赖服务是足够可靠的情况下才使用信号量。
+     */
     @HystrixCommand(fallbackMethod = "helloServiceFallback")
     public String helloService() {
         return restTemplate.getForEntity("http://HELLO-SERVICE/hello", String.class).getBody();
