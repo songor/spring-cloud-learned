@@ -2,6 +2,7 @@ package com.spring.cloud.example.ribbonconsumer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,11 @@ import org.springframework.web.client.RestTemplate;
  * 在客户端程序中，当服务实例进行正常的关闭操作时，它会触发一个服务下线的 REST 请求给 Eureka Server，告诉服务注册中心“我要下线了”。
  * 服务端在接收到请求之后，将该服务状态置为 DOWN，并把该下线事件广播出去。
  */
+
+/**
+ * 可以使用 Spring Cloud 应用中的 @SpringCloudApplication 注解来修饰应用主类
+ */
+@EnableCircuitBreaker
 @EnableEurekaClient
 @SpringBootApplication
 public class RibbonConsumerApplication {

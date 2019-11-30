@@ -16,4 +16,17 @@ public class ConsumerController {
         return restTemplate.getForEntity("http://HELLO-SERVICE/hello", String.class).getBody();
     }
 
+    @Autowired
+    private ConsumerService consumerService;
+
+    @GetMapping("/ribbon-consumer-enhanced")
+    public String helloConsumerEnhanced() {
+        return consumerService.helloService();
+    }
+
+    @GetMapping("/ribbon-consumer-time-out")
+    public String helloConsumerTimeOut() {
+        return consumerService.helloServiceTimeOut();
+    }
+
 }
