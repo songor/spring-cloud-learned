@@ -51,6 +51,15 @@ public class ConsumerService {
      * toObservable()：同 observe()
      * 9、返回成功的响应
      */
+    /**
+     * <b>断路器 HystrixCircuitBreaker</b>
+     * isOpen()：判断断路器的打开、关闭状态
+     * allowRequest()：判断请求是否被允许，return !isOpen() || allowSingleTest();
+     * 通过 circuitBreakerSleepWindowInMilliseconds 属性设置了一个断路器打开之后的休眠时间，在该休眠时间到达之后，
+     * 将再次允许请求尝试访问，此时断路器处于“半开”状态，若此时请求继续失败，断路器则又进入打开状态，并继续等待下一个休眠窗口过去之后再次尝试；
+     * 若请求成功，则将断路器重新置于关闭状态。
+     * markSuccess()：该函数用来在“半开”状态时使用
+     */
     @HystrixCommand(fallbackMethod = "helloServiceFallback")
     public String helloService() {
         return restTemplate.getForEntity("http://HELLO-SERVICE/hello", String.class).getBody();
