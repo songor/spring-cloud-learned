@@ -23,7 +23,7 @@ public class UserService {
      * @param id
      * @return
      */
-    @HystrixCommand
+    @HystrixCommand(fallbackMethod = "defaultUser")
     public User getUserById(Long id) {
         return restTemplate.getForObject("http://USER-SERVICE/users/{1}", User.class, id);
     }
@@ -34,7 +34,7 @@ public class UserService {
      * @param id
      * @return
      */
-    @HystrixCommand
+    @HystrixCommand(fallbackMethod = "defaultUser")
     public Future<User> getUserByIdAsync(Long id) {
         return new AsyncResult<User>() {
             @Override
@@ -52,7 +52,7 @@ public class UserService {
      * @param id
      * @return
      */
-    @HystrixCommand(observableExecutionMode = ObservableExecutionMode.EAGER)
+    @HystrixCommand(observableExecutionMode = ObservableExecutionMode.EAGER, defaultFallback = "defaultUser")
     public Observable<User> getUserById(String id) {
         return Observable.create(new Observable.OnSubscribe<User>() {
             @Override
@@ -68,6 +68,17 @@ public class UserService {
                 }
             }
         });
+    }
+
+    @HystrixCommand(fallbackMethod = "stableUser")
+    private User defaultUser() {
+        // Assuming it is unstable
+        return new User();
+    }
+
+    private User stableUser() {
+        // Stable
+        return new User();
     }
 
 }

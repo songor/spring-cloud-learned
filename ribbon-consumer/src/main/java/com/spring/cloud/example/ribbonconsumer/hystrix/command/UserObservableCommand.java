@@ -39,4 +39,9 @@ public class UserObservableCommand extends HystrixObservableCommand {
         });
     }
 
+    @Override
+    protected Observable resumeWithFallback() {
+        return super.resumeWithFallback();
+    }
+
 }
