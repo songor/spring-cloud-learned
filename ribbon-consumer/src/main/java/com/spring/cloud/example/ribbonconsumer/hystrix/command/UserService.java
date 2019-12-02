@@ -32,7 +32,8 @@ public class UserService {
      * 除了 HystrixBadRequestException 之外，其他异常均会被 Hystrix 认为命令执行失败并触发服务降级的处理逻辑。通过设置 @HystrixCommand
      * 注解的 ignoreExceptions 参数，Hystrix 会将它包装在 HystrixBadRequestException 中抛出，这样就不会触发后续的 fallback 逻辑。
      */
-    @HystrixCommand(fallbackMethod = "defaultUser", ignoreExceptions = {HystrixBadRequestException.class})
+    @HystrixCommand(fallbackMethod = "defaultUser", ignoreExceptions = {HystrixBadRequestException.class},
+            commandKey = "getUserById", groupKey = "UserGroup", threadPoolKey = "getUserByIdThread")
     public User getUserById(Long id) {
         return restTemplate.getForObject("http://USER-SERVICE/users/{1}", User.class, id);
     }
