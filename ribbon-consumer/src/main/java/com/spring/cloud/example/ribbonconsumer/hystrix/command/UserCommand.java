@@ -2,6 +2,7 @@ package com.spring.cloud.example.ribbonconsumer.hystrix.command;
 
 import com.netflix.hystrix.HystrixCommand;
 import com.spring.cloud.example.ribbonconsumer.hystrix.User;
+import lombok.extern.java.Log;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
  * Observable<String> hotObservable = new UserCommand(restTemplate, 1L).observe();
  * Observable<String> coldObservable = new UserCommand(restTemplate, 1L).toObservable();
  */
+@Log
 public class UserCommand extends HystrixCommand {
 
     private RestTemplate restTemplate;
@@ -33,6 +35,9 @@ public class UserCommand extends HystrixCommand {
     @Override
     protected Object getFallback() {
 //        return super.getFallback();
+        // 异常获取
+        Throwable throwable = getExecutionException();
+        log.info(throwable.getMessage());
         return new User();
     }
 

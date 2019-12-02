@@ -1,5 +1,7 @@
 package com.spring.cloud.example.ribbonconsumer;
 
+import com.spring.cloud.example.ribbonconsumer.hystrix.User;
+import com.spring.cloud.example.ribbonconsumer.hystrix.command.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +29,14 @@ public class ConsumerController {
     @GetMapping("/ribbon-consumer-time-out")
     public String helloConsumerTimeOut() {
         return consumerService.helloServiceTimeOut();
+    }
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/ribbon-consumer-user-ex")
+    public User getUserByIdWithEx() {
+        return userService.getUserByIdWithEx(1L);
     }
 
 }
