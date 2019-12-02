@@ -2,6 +2,9 @@ package com.spring.cloud.example.ribbonconsumer.hystrix.command;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.ObservableExecutionMode;
+import com.netflix.hystrix.contrib.javanica.cache.annotation.CacheKey;
+import com.netflix.hystrix.contrib.javanica.cache.annotation.CacheRemove;
+import com.netflix.hystrix.contrib.javanica.cache.annotation.CacheResult;
 import com.netflix.hystrix.contrib.javanica.command.AsyncResult;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
 import com.spring.cloud.example.ribbonconsumer.hystrix.User;
@@ -32,10 +35,19 @@ public class UserService {
      * 除了 HystrixBadRequestException 之外，其他异常均会被 Hystrix 认为命令执行失败并触发服务降级的处理逻辑。通过设置 @HystrixCommand
      * 注解的 ignoreExceptions 参数，Hystrix 会将它包装在 HystrixBadRequestException 中抛出，这样就不会触发后续的 fallback 逻辑。
      */
+//    @CacheResult(cacheKeyMethod = "getUserByIdCacheKey")
+    @CacheResult
     @HystrixCommand(fallbackMethod = "defaultUser", ignoreExceptions = {HystrixBadRequestException.class},
             commandKey = "getUserById", groupKey = "UserGroup", threadPoolKey = "getUserByIdThread")
-    public User getUserById(Long id) {
+    public User getUserById(@CacheKey("id") Long id) {
         return restTemplate.getForObject("http://USER-SERVICE/users/{1}", User.class, id);
+    }
+
+    /**
+     * 使用 @CacheResult 注解的 cacheKeyMethod 方法来指定具体的生成函数；也可以通过使用 @CacheKey 注解在方法参数中指定用于组装缓存 Key 的元素
+     */
+    private Long getUserByIdCacheKey(Long id) {
+        return id;
     }
 
     /**
@@ -105,5 +117,15 @@ public class UserService {
         log.info("Catch exception: " + "execute failed".equals(e.getMessage()));
         return new User();
     }
+
+    /**
+     * 使用 @CacheReomve 注解的 commandKey 属性来指明需要使用请求缓存的请求命令
+     */
+    @CacheRemove(commandKey = "getUserById")
+    @HystrixCommand
+    public void update(@CacheKey("id") User user) {
+        restTemplate.postForObject("http://USER-SERVICE/users", user, User.class);
+    }
+
 
 }
