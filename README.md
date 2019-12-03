@@ -75,3 +75,21 @@
   * 动态刷新配置
 
     POST http://localhost:7002/actuator/refresh
+
+### Spring Cloud Hystrix
+
+* Hystrix Dashboard
+
+  http://localhost:2001/hystrix
+
+* 单体应用监控
+
+  在 Hystrix Dashboard 的首页输入 http://localhost:9000/actuator/hystrix.stream
+
+* 默认的集群监控
+
+  在 Hystrix Dashboard 的首页输入 http://localhost:8989/turbine.stream
+
+* 指定的集群监控
+
+  在 Hystrix Dashboard 的首页输入 http://localhost:8989/turbine.stream?cluster=default
