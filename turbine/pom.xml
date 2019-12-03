@@ -6,7 +6,7 @@
     <artifactId>turbine</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>turbine</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Demo project for Turbine</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
