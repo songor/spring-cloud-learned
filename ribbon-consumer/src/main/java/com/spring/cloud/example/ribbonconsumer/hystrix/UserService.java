@@ -1,20 +1,23 @@
-package com.spring.cloud.example.ribbonconsumer.hystrix.command;
+package com.spring.cloud.example.ribbonconsumer.hystrix;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCollapser;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.netflix.hystrix.contrib.javanica.annotation.ObservableExecutionMode;
 import com.netflix.hystrix.contrib.javanica.cache.annotation.CacheKey;
 import com.netflix.hystrix.contrib.javanica.cache.annotation.CacheRemove;
 import com.netflix.hystrix.contrib.javanica.cache.annotation.CacheResult;
 import com.netflix.hystrix.contrib.javanica.command.AsyncResult;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
-import com.spring.cloud.example.ribbonconsumer.hystrix.User;
 import lombok.extern.java.Log;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import rx.Observable;
 import rx.Subscriber;
 
+import java.util.List;
 import java.util.concurrent.Future;
 
 @Log
@@ -127,5 +130,21 @@ public class UserService {
         restTemplate.postForObject("http://USER-SERVICE/users", user, User.class);
     }
 
+    /**
+     * 注解实现请求合并器
+     * 虽然通过请求合并可以减少请求的数量以缓解依赖服务线程池的资源，但是在使用的时候也需要注意它所带来的额外开销，
+     * 用于请求合并的延迟时间窗会使得依赖服务的请求延迟增高。
+     * 是否使用请求合并器需要根据依赖服务调用的实际情况来选择，主要考虑：请求命令本身的延迟；延迟时间窗内的并发量
+     */
+    @HystrixCollapser(batchMethod = "findAll",
+            collapserProperties = {@HystrixProperty(name = "timerDelayInMilliseconds", value = "100")})
+    public User find(Long id) {
+        return null;
+    }
+
+    @HystrixCommand
+    public List<User> findAll(List<Long> ids) {
+        return restTemplate.getForObject("http://USER-SERVICE/users?ids={1}", List.class, StringUtils.join(ids, ","));
+    }
 
 }

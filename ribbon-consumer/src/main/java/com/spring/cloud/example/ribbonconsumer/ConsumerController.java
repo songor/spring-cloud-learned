@@ -1,7 +1,7 @@
 package com.spring.cloud.example.ribbonconsumer;
 
 import com.spring.cloud.example.ribbonconsumer.hystrix.User;
-import com.spring.cloud.example.ribbonconsumer.hystrix.command.UserService;
+import com.spring.cloud.example.ribbonconsumer.hystrix.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
