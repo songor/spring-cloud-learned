@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
+import org.springframework.cloud.netflix.zuul.filters.discovery.PatternServiceRouteMapper;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -26,6 +27,19 @@ public class ApiGatewayApplication {
     @Bean
     public AccessTokenFilter accessTokenFilter() {
         return new AccessTokenFilter();
+    }
+
+    /**
+     * 自定义路由映射规则
+     * 为不同版本的微服务应用生成以版本号作为路由前缀定义的路由规则，通过这样具有版本号前缀的 URL 路径，
+     * 我们就可以很容易地通过路径表达式来归类和管理这些具有版本信息的微服务了
+     * 例如：helloservice-v1 -> /v1/helloservice/**
+     */
+    @Bean
+    public PatternServiceRouteMapper patternServiceRouteMapper() {
+        return new PatternServiceRouteMapper(
+                "(?<name>^.+)-(?<version>v.+$)",
+                "${version}/${name}");
     }
 
 }
