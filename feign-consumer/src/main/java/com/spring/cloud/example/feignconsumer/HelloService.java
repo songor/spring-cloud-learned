@@ -1,7 +1,7 @@
 package com.spring.cloud.example.feignconsumer;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 通过 @FeignClient 注解指定服务名来绑定服务
@@ -14,5 +14,16 @@ public interface HelloService {
      */
     @GetMapping("/hello")
     String hello();
+
+    @GetMapping("/hello-param")
+    String helloWithParam(@RequestParam String name);
+
+    @GetMapping("/hello-header")
+    User helloWithHeader(@RequestHeader String name, @RequestHeader Integer age);
+
+    @PostMapping("/hello-body")
+    String helloWithBody(@RequestBody User user);
+
+
 
 }

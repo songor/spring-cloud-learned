@@ -15,4 +15,13 @@ public class ConsumerController {
         return helloService.hello();
     }
 
+    @GetMapping("/feign-consumer-enhanced")
+    public String helloConsumerEnhanced() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(helloService.helloWithParam("Feign")).append("\n");
+        sb.append(helloService.helloWithHeader("Feign", 18)).append("\n");
+        sb.append(helloService.helloWithBody(new User("Feign", 18)));
+        return sb.toString();
+    }
+
 }
