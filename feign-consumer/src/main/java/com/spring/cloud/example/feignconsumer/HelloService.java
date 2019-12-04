@@ -24,6 +24,4 @@ public interface HelloService {
     @PostMapping("/hello-body")
     String helloWithBody(@RequestBody User user);
 
-
-
 }
