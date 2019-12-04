@@ -15,6 +15,11 @@ public class ConsumerController {
         return helloService.hello();
     }
 
+    @GetMapping("/feign-consumer-time-out")
+    public String helloConsumerTimeOut() {
+        return helloService.helloTimeOut();
+    }
+
     @GetMapping("/feign-consumer-enhanced")
     public String helloConsumerEnhanced() {
         StringBuilder sb = new StringBuilder();

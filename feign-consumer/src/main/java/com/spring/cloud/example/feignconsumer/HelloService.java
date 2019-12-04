@@ -6,7 +6,8 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 通过 @FeignClient 注解指定服务名来绑定服务
  */
-@FeignClient("HELLO-SERVICE")
+@FeignClient(value = "HELLO-SERVICE", fallback = HelloServiceFallback.class)
+//@FeignClient(value = "HELLO-SERVICE", configuration = DisableHystrixConfiguration.class)
 public interface HelloService {
 
     /**
@@ -14,6 +15,9 @@ public interface HelloService {
      */
     @GetMapping("/hello")
     String hello();
+
+    @GetMapping("/hello-time-out")
+    String helloTimeOut();
 
     @GetMapping("/hello-param")
     String helloWithParam(@RequestParam String name);
