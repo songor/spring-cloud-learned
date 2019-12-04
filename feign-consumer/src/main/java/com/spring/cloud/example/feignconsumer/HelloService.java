@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 通过 @FeignClient 注解指定服务名来绑定服务
  */
-@FeignClient(value = "HELLO-SERVICE", fallback = HelloServiceFallback.class)
+@FeignClient(value = "HELLO-SERVICE", fallback = HelloServiceFallback.class, configuration = FullLogConfiguration.class)
 //@FeignClient(value = "HELLO-SERVICE", configuration = DisableHystrixConfiguration.class)
 public interface HelloService {
 
