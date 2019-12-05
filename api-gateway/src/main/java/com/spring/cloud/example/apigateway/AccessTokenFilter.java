@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 @Log
 public class AccessTokenFilter extends ZuulFilter {
 
+    /**
+     * pre、routing、post、error
+     */
     @Override
     public String filterType() {
         return "pre";
