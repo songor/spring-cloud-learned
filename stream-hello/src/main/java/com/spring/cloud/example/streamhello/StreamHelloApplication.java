@@ -14,6 +14,26 @@ import org.springframework.web.bind.annotation.RestController;
  * 它使得不同消息中间件的实现细节对应用程序来说是透明的。
  * 通过定义绑定器作为中间层，完美地实现了应用程序与消息中间件细节之间的隔离。通过向应用程序暴露统一的 Channel 通道，
  * 使得应用程序不需要再考虑各种不同的消息中间件的实现。
+ * classpath 下的 META-INF/spring.binders
+ * 自动化配置：
+ * spring-cloud-stream-binder-rabbit
+ * spring-cloud-stream-binder-kafka
+ * 多绑定器配置：
+ * 设置默认绑定器 spring.cloud.stream.defaultBinder=rabbit
+ * 为消息通道 input 单独设置绑定器 spring.cloud.stream.bindings.input.binder=kafka
+ * 使用同一类型不同环境的绑定器：
+ * spring.cloud.stream.bindings.input.binder=rabbit-1
+ * spring.cloud.stream.bindings.output.binder=rabbit-2
+ * spring.cloud.stream.binders.rabbit-1.type=rabbit
+ * spring.cloud.stream.binders.rabbit-1.environment.spring.rabbitmq.host=
+ * spring.cloud.stream.binders.rabbit-1.environment.spring.rabbitmq.port=
+ * spring.cloud.stream.binders.rabbit-1.environment.spring.rabbitmq.username=
+ * spring.cloud.stream.binders.rabbit-1.environment.spring.rabbitmq.password=
+ * spring.cloud.stream.binders.rabbit-2.type=rabbit
+ * spring.cloud.stream.binders.rabbit-2.environment.spring.rabbitmq.host=
+ * spring.cloud.stream.binders.rabbit-2.environment.spring.rabbitmq.port=
+ * spring.cloud.stream.binders.rabbit-2.environment.spring.rabbitmq.username=
+ * spring.cloud.stream.binders.rabbit-2.environment.spring.rabbitmq.password=
  * <b>发布-订阅模式</b>
  * Spring Cloud Stream 中的消息通信方式遵循了发布-订阅模式，当一条消息被投递到消息中间件后，它会通过共享的 Topic 主题进行广播，
  * 消息消费者在订阅的主题中收到它并触发自身的业务逻辑处理。
@@ -22,6 +42,27 @@ import org.springframework.web.bind.annotation.RestController;
  * 这样这个应用的多个实例在接收到消息的时候，只会有一个成员真正收到消息并进行处理。
  * <b>消费分区</b>
  * 当生产者将消息数据发送给多个消费者实例时，保证拥有共同特征的消息数据始终是由同一个消费者实例接收和处理。
+ */
+
+/**
+ * <b>配置</b>
+ * 基础配置：
+ * spring.cloud.stream.*
+ * 绑定通道配置：
+ * 通用配置：
+ * spring.cloud.stream.bindings.<channelName>.<property>=<value>
+ * 消费者配置：
+ * spring.cloud.stream.bindings.<channelName>.consumer.*
+ * 生产者配置：
+ * spring.cloud.stream.bindings.<channelName>.producer.*
+ * 绑定器配置：
+ * RabbitMQ & Kafka
+ * 通用配置：
+ * spring.cloud.stream.rabbit.binder.* & spring.cloud.stream.kafka.binder.*
+ * 消费者配置：
+ * spring.cloud.stream.rabbit.bindings.<channelName>.consumer.* & spring.cloud.stream.kafka.bindings.<channelName>.consumer.*
+ * 生产者配置：
+ * spring.cloud.stream.rabbit.bindings.<channelName>.producer.* & spring.cloud.stream.kafka.bindings.<channelName>.producer.*
  */
 @RestController
 @SpringBootApplication
