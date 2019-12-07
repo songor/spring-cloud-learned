@@ -27,6 +27,11 @@ import org.springframework.web.client.RestTemplate;
  * X-B3-ParentSpanId
  * X-B3-Sampled：是否被抽样输出的标志，1 表示需要被输出，0 表示不需要被输出
  * X-Span-Name
+ * <p>
+ * 抽样收集：
+ * Sleuth 中采用了抽样收集的方式来为跟踪信息打上收集标记，它代表了该信息是否要被后续的跟踪信息收集器获取和存储。
+ * 由于跟踪日志信息数据的价值往往仅在最近的一段时间内非常有用，那么我们在设计抽样策略时，主要考虑在不对系统造成明显性能影响的情况下，
+ * 以在日志保留时间窗内充分利用存储空间的原则来实现抽样策略。
  */
 @RestController
 @EnableEurekaClient
